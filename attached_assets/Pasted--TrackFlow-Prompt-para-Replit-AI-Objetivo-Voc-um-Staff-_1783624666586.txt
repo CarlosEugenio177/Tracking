@@ -1,0 +1,526 @@
+# 🚀 TrackFlow — Prompt para Replit AI
+
+## Objetivo
+
+Você é um **Staff Software Engineer**, **Product Manager**, **Software Architect** e **UX Designer** especialista em **SaaS**, **Marketing Analytics**, **Tracking Digital** e **Micro SaaS**.
+
+Sua missão é construir um produto completo, moderno, escalável e preparado para produção.
+
+---
+
+# 📌 Visão do Produto
+
+Quero desenvolver um **Micro SaaS chamado TrackFlow** (nome provisório).
+
+O objetivo é ser o **"GitHub do Tracking Digital"**, centralizando toda a jornada de uma campanha:
+
+```
+Campanha
+      ↓
+Gerador de UTM
+      ↓
+Link Compartilhado
+      ↓
+Clique
+      ↓
+Landing Page
+      ↓
+Webhook
+      ↓
+CRM
+      ↓
+Venda
+      ↓
+ROI
+```
+
+O produto **não será apenas um gerador de UTMs**.
+
+Ele deve resolver problemas reais enfrentados por:
+
+- Gestores de Tráfego
+- Agências
+- Empresas
+- Analistas de Marketing
+- Analistas de BI
+
+Inicialmente será voltado para o mercado brasileiro, mas toda a arquitetura deve ser preparada para internacionalização.
+
+---
+
+# 🎯 Problemas que queremos resolver
+
+Hoje o mercado sofre com:
+
+- UTMs sem padronização
+- campanhas desorganizadas
+- links espalhados
+- perda de histórico
+- ausência de governança
+- campanhas publicadas sem UTM
+- dificuldade para descobrir qual anúncio gerou uma venda
+- números diferentes entre Meta Ads, Google Ads, GA4 e CRM
+- tracking quebrado
+- webhooks difíceis de analisar
+- ausência de auditoria
+- dificuldade para debugar eventos
+- dificuldade para medir ROI real
+
+O sistema deve resolver essas dores.
+
+---
+
+# ⭐ Diferencial
+
+O TrackFlow acompanha **todo o ciclo do tracking**, desde a criação da campanha até o fechamento da venda.
+
+Não queremos competir apenas com geradores de UTM.
+
+Queremos criar uma plataforma completa de governança e observabilidade do tracking.
+
+---
+
+# 👥 Público-alvo
+
+- Agências de Marketing
+- Gestores de Tráfego
+- Freelancers
+- Empresas
+- Consultorias
+- Equipes internas de Marketing
+
+---
+
+# 🏗 MVP
+
+## 1. Autenticação
+
+- Login
+- Cadastro
+- Recuperação de senha
+- JWT
+- Refresh Token
+- Controle de permissões
+- Multi Workspace
+
+---
+
+## 2. Dashboard
+
+Exibir indicadores:
+
+- Cliques
+- Leads
+- Conversões
+- Receita
+- ROI
+- CPL
+- CPA
+- ROAS
+
+Adicionar:
+
+- gráficos
+- timeline
+- filtros
+- período
+- cliente
+- campanha
+
+---
+
+## 3. Biblioteca de Campanhas
+
+Cada campanha possui:
+
+- Nome
+- Cliente
+- Plataforma
+- Objetivo
+- Responsável
+- Tags
+- Status
+- Data
+- Observações
+
+---
+
+## 4. Gerador Inteligente de UTM
+
+O usuário informa apenas:
+
+- Plataforma
+- Campanha
+- Criativo
+- Público
+
+O sistema gera automaticamente:
+
+- utm_source
+- utm_medium
+- utm_campaign
+- utm_content
+- utm_term
+
+Seguindo regras configuráveis.
+
+---
+
+## 5. Biblioteca de Links
+
+Salvar:
+
+- URL Original
+- URL Final
+- QR Code
+- Short Link
+- Campanha
+- Responsável
+- Histórico
+
+---
+
+## 6. Validador de Links
+
+Receber uma URL.
+
+Detectar:
+
+- ausência de UTMs
+- parâmetros inválidos
+- parâmetros duplicados
+- nomenclatura incorreta
+- caracteres inválidos
+
+Mostrar sugestões automáticas.
+
+---
+
+## 7. Recebedor de Webhooks
+
+Criar endpoints dinâmicos:
+
+```
+/webhook/{workspace}/{endpoint}
+```
+
+Salvar:
+
+- Headers
+- Payload
+- Timestamp
+- IP
+- Origem
+- Status
+
+Permitir:
+
+- visualizar JSON formatado
+- copiar
+- reenviar
+- pesquisar
+- filtrar
+
+---
+
+## 8. Timeline de Eventos
+
+Mostrar:
+
+```
+Clique
+
+↓
+
+Lead
+
+↓
+
+Webhook
+
+↓
+
+CRM
+
+↓
+
+Venda
+```
+
+Todos conectados pelo mesmo Lead ID.
+
+---
+
+## 9. Dashboard de Conversões
+
+Mostrar:
+
+- Receita
+- Ticket Médio
+- Conversão
+- Origem
+- Campanha
+- Criativo
+- Plataforma
+
+---
+
+## 10. Integrações
+
+Arquitetura preparada para conectar:
+
+- Meta Ads
+- Google Ads
+- Inlead
+- RD Station
+- HubSpot
+- Pipedrive
+- Zapier
+- Make
+- n8n
+
+Utilizar Adapter Pattern.
+
+---
+
+## 11. Auditor de Tracking
+
+Receber uma URL.
+
+Verificar:
+
+- Meta Pixel
+- Google Tag Manager
+- Google Analytics
+- Cookies
+- Consentimento
+- Eventos
+
+Gerar relatório.
+
+---
+
+# 🧱 Arquitetura
+
+Utilizar:
+
+- Clean Architecture
+- SOLID
+- Repository Pattern
+- Service Layer
+- DTO
+- Use Cases
+- Dependency Injection
+
+Separar:
+
+```
+Domain
+
+Application
+
+Infrastructure
+
+Presentation
+```
+
+---
+
+# 💻 Stack
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+- shadcn/ui
+- React Hook Form
+- TanStack Query
+- Zod
+
+---
+
+## Backend
+
+- NestJS
+- Prisma
+- PostgreSQL
+- Redis
+- BullMQ
+
+---
+
+## Infra
+
+- Docker
+- Docker Compose
+- Traefik
+
+---
+
+## Observabilidade
+
+- PostHog
+- Sentry
+
+---
+
+## Testes
+
+- Vitest
+- Playwright
+- Supertest
+
+---
+
+# 🗄 Banco de Dados
+
+Modelar:
+
+- User
+- Workspace
+- Campaign
+- Link
+- Webhook
+- Event
+- Customer
+- Conversion
+- Integration
+- AuditLog
+
+Criar índices pensando em performance.
+
+---
+
+# 🔐 Multi Tenant
+
+O sistema deve nascer Multi-Tenant.
+
+Cada Workspace possui:
+
+- usuários
+- campanhas
+- links
+- eventos
+- webhooks
+- integrações
+
+Nenhum dado pode ser compartilhado entre workspaces.
+
+---
+
+# 🎨 UI/UX
+
+Inspirar-se em:
+
+- Linear
+- Stripe Dashboard
+- Vercel
+- Notion
+- Clerk
+- Supabase
+
+Características:
+
+- Dark Mode
+- Responsivo
+- Minimalista
+- Rápido
+- Moderno
+- Excelente UX
+
+---
+
+# 📂 Estrutura esperada
+
+```
+apps/
+   web/
+
+   api/
+
+packages/
+
+   ui/
+
+   types/
+
+   config/
+
+   utils/
+
+prisma/
+
+docker/
+
+docs/
+```
+
+---
+
+# 📚 Documentação
+
+Gerar automaticamente:
+
+- README
+- Guia de instalação
+- Variáveis de ambiente
+- Fluxo da aplicação
+- Arquitetura
+- API
+
+---
+
+# 🚀 Roadmap Futuro
+
+Preparar o projeto para adicionar:
+
+- Pixel próprio
+- Server Side Tracking
+- Meta Conversion API
+- Google Conversion API
+- Attribution Engine
+- IA para detectar problemas de tracking
+- Alertas automáticos
+- API Pública
+- SDK JavaScript
+- SDK Node.js
+- Marketplace
+- Extensão Chrome
+- Aplicativo Mobile
+- Sistema de White Label
+
+---
+
+# 🎯 Objetivo Final
+
+Construa um produto com qualidade de startup SaaS moderna.
+
+Priorize:
+
+- simplicidade
+- escalabilidade
+- segurança
+- performance
+- código limpo
+- reutilização
+- documentação
+- testes
+- ótima experiência do usuário
+
+---
+
+# 📋 Ordem de Desenvolvimento
+
+Antes de escrever qualquer código:
+
+1. Defina a arquitetura completa.
+2. Modele o banco de dados.
+3. Crie a estrutura de pastas.
+4. Defina os módulos.
+5. Crie um roadmap dividido em sprints.
+6. Liste os riscos técnicos.
+7. Sugira melhorias no produto.
+8. Identifique funcionalidades que podem aumentar o MRR.
+9. Somente após aprovação, inicie a implementação do projeto de forma incremental, com commits lógicos e código pronto para produção.

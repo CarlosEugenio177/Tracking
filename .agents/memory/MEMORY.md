@@ -1,0 +1,3 @@
+- [DB package compilation](db-package-compilation.md) — new schema files require `tsc --emitDeclarationOnly` in lib/db before api-server typecheck passes.
+- [TrackFlow workspace auth](trackflow-workspace-auth.md) — all workspace-scoped routes use requireAuth + requireWorkspaceAccess middleware; workspace auth checks ownership first, then membership.
+- [TrackFlow stack](trackflow-stack.md) — full-stack overview: React+Vite frontend (trackflow artifact), Express API (api-server artifact), Drizzle+PostgreSQL, Clerk auth, Orval codegen hooks.

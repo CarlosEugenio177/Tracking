@@ -3,20 +3,34 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: TrackFlow API — digital tracking governance platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: workspaces
+    description: Workspace management
+  - name: campaigns
+    description: Campaign library
+  - name: links
+    description: Link library & UTM generator
+  - name: webhooks
+    description: Webhook receiver management
+  - name: events
+    description: Event timeline
+  - name: conversions
+    description: Conversion tracking
+  - name: dashboard
+    description: Dashboard analytics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +38,725 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Workspaces ───────────────────────────────────────────────────────────
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [workspaces]
+      summary: List all workspaces for the current user
+      responses:
+        "200":
+          description: List of workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workspace"
+    post:
+      operationId: createWorkspace
+      tags: [workspaces]
+      summary: Create a new workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+
+  /workspaces/{workspaceId}:
+    get:
+      operationId: getWorkspace
+      tags: [workspaces]
+      summary: Get a workspace by ID
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateWorkspace
+      tags: [workspaces]
+      summary: Update a workspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceUpdate"
+      responses:
+        "200":
+          description: Updated workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+
+  # ─── Dashboard ────────────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard KPI statistics
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: campaignId
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /workspaces/{workspaceId}/dashboard/timeline:
+    get:
+      operationId: getDashboardTimeline
+      tags: [dashboard]
+      summary: Get click/conversion timeline for chart
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          schema:
+            type: string
+        - name: granularity
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month]
+      responses:
+        "200":
+          description: Timeline data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimelinePoint"
+
+  # ─── Campaigns ────────────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      summary: List all campaigns in a workspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused, completed, draft]
+        - name: platform
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create a new campaign
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}:
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      summary: Get a campaign by ID
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCampaign
+      tags: [campaigns]
+      summary: Update a campaign
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignUpdate"
+      responses:
+        "200":
+          description: Updated campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    delete:
+      operationId: deleteCampaign
+      tags: [campaigns]
+      summary: Delete a campaign
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /workspaces/{workspaceId}/campaigns/{campaignId}/stats:
+    get:
+      operationId: getCampaignStats
+      tags: [campaigns]
+      summary: Get performance stats for a campaign
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignStats"
+
+  # ─── Links ────────────────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/links:
+    get:
+      operationId: listLinks
+      tags: [links]
+      summary: List all tracked links in a workspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrackedLink"
+    post:
+      operationId: createLink
+      tags: [links]
+      summary: Create a new tracked link
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackedLink"
+
+  /workspaces/{workspaceId}/links/{linkId}:
+    get:
+      operationId: getLink
+      tags: [links]
+      summary: Get a link by ID
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: linkId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackedLink"
+    delete:
+      operationId: deleteLink
+      tags: [links]
+      summary: Delete a tracked link
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: linkId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /workspaces/{workspaceId}/links/generate-utm:
+    post:
+      operationId: generateUtm
+      tags: [links]
+      summary: Generate UTM parameters from campaign info
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UtmGeneratorInput"
+      responses:
+        "200":
+          description: Generated UTM parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtmResult"
+
+  /workspaces/{workspaceId}/links/validate:
+    post:
+      operationId: validateLink
+      tags: [links]
+      summary: Validate a URL for UTM correctness
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkValidationInput"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkValidationResult"
+
+  # ─── Webhooks ─────────────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/webhooks:
+    get:
+      operationId: listWebhookEndpoints
+      tags: [webhooks]
+      summary: List all webhook endpoints for a workspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of webhook endpoints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookEndpoint"
+    post:
+      operationId: createWebhookEndpoint
+      tags: [webhooks]
+      summary: Create a new webhook endpoint
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookEndpointInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEndpoint"
+
+  /workspaces/{workspaceId}/webhooks/{endpointId}:
+    get:
+      operationId: getWebhookEndpoint
+      tags: [webhooks]
+      summary: Get a webhook endpoint with its recent events
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: endpointId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Webhook endpoint detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEndpointDetail"
+    delete:
+      operationId: deleteWebhookEndpoint
+      tags: [webhooks]
+      summary: Delete a webhook endpoint
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: endpointId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /workspaces/{workspaceId}/webhooks/{endpointId}/events:
+    get:
+      operationId: listWebhookEvents
+      tags: [webhooks]
+      summary: List events received by a webhook endpoint
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: endpointId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of webhook events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookEvent"
+
+  /workspaces/{workspaceId}/webhooks/{endpointId}/events/{eventId}/resend:
+    post:
+      operationId: resendWebhookEvent
+      tags: [webhooks]
+      summary: Resend a webhook event
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: endpointId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resend result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEvent"
+
+  # ─── Events / Timeline ────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all tracking events (click, lead, webhook, sale)
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: leadId
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: eventType
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: campaignId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: startDate
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: endDate
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrackingEvent"
+
+  # ─── Conversions ──────────────────────────────────────────────────────────
+  /workspaces/{workspaceId}/conversions:
+    get:
+      operationId: listConversions
+      tags: [conversions]
+      summary: List all conversions
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: campaignId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: startDate
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: endDate
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of conversions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversion"
+    post:
+      operationId: createConversion
+      tags: [conversions]
+      summary: Record a new conversion
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversion"
+
+  /workspaces/{workspaceId}/conversions/summary:
+    get:
+      operationId: getConversionSummary
+      tags: [conversions]
+      summary: Get conversion summary grouped by campaign/platform/creative
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: endDate
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Conversion summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversionSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +767,524 @@ components:
       required:
         - status
 
+    # ─── Workspace ─────────────────────────────────────────────────────────
+    Workspace:
+      type: object
+      required: [id, name, slug, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        logoUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    WorkspaceInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          minLength: 1
+        logoUrl:
+          type: string
+
+    WorkspaceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        logoUrl:
+          type: string
+
+    # ─── Dashboard ─────────────────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      required: [clicks, leads, conversions, revenue, roi, cpl, cpa, roas, topCampaigns]
+      properties:
+        clicks:
+          type: integer
+        leads:
+          type: integer
+        conversions:
+          type: integer
+        revenue:
+          type: number
+        roi:
+          type: number
+        cpl:
+          type: number
+        cpa:
+          type: number
+        roas:
+          type: number
+        topCampaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampaignStats"
+
+    TimelinePoint:
+      type: object
+      required: [date, clicks, leads, conversions, revenue]
+      properties:
+        date:
+          type: string
+        clicks:
+          type: integer
+        leads:
+          type: integer
+        conversions:
+          type: integer
+        revenue:
+          type: number
+
+    # ─── Campaign ──────────────────────────────────────────────────────────
+    Campaign:
+      type: object
+      required: [id, workspaceId, name, status, createdAt]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        client:
+          type: ["string", "null"]
+        platform:
+          type: ["string", "null"]
+        objective:
+          type: ["string", "null"]
+        responsible:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, paused, completed, draft]
+        budget:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        startDate:
+          type: ["string", "null"]
+        endDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CampaignInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        client:
+          type: string
+        platform:
+          type: string
+        objective:
+          type: string
+        responsible:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, paused, completed, draft]
+        budget:
+          type: number
+        notes:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+
+    CampaignUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        client:
+          type: string
+        platform:
+          type: string
+        objective:
+          type: string
+        responsible:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, paused, completed, draft]
+        budget:
+          type: number
+        notes:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+
+    CampaignStats:
+      type: object
+      required: [campaignId, campaignName, clicks, leads, conversions, revenue, roas]
+      properties:
+        campaignId:
+          type: integer
+        campaignName:
+          type: string
+        clicks:
+          type: integer
+        leads:
+          type: integer
+        conversions:
+          type: integer
+        revenue:
+          type: number
+        roas:
+          type: number
+
+    # ─── Links ─────────────────────────────────────────────────────────────
+    TrackedLink:
+      type: object
+      required: [id, workspaceId, originalUrl, finalUrl, createdAt]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: ["integer", "null"]
+        campaignName:
+          type: ["string", "null"]
+        originalUrl:
+          type: string
+        finalUrl:
+          type: string
+        shortUrl:
+          type: ["string", "null"]
+        qrCodeUrl:
+          type: ["string", "null"]
+        utmSource:
+          type: ["string", "null"]
+        utmMedium:
+          type: ["string", "null"]
+        utmCampaign:
+          type: ["string", "null"]
+        utmContent:
+          type: ["string", "null"]
+        utmTerm:
+          type: ["string", "null"]
+        responsible:
+          type: ["string", "null"]
+        clicks:
+          type: integer
+        createdAt:
+          type: string
+
+    LinkInput:
+      type: object
+      required: [originalUrl]
+      properties:
+        originalUrl:
+          type: string
+        campaignId:
+          type: integer
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
+        utmContent:
+          type: string
+        utmTerm:
+          type: string
+        responsible:
+          type: string
+
+    UtmGeneratorInput:
+      type: object
+      required: [baseUrl, platform, campaignName]
+      properties:
+        baseUrl:
+          type: string
+        platform:
+          type: string
+        campaignName:
+          type: string
+        creative:
+          type: string
+        audience:
+          type: string
+        campaignId:
+          type: integer
+
+    UtmResult:
+      type: object
+      required: [finalUrl, utmSource, utmMedium, utmCampaign]
+      properties:
+        finalUrl:
+          type: string
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
+        utmContent:
+          type: ["string", "null"]
+        utmTerm:
+          type: ["string", "null"]
+
+    LinkValidationInput:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+
+    LinkValidationResult:
+      type: object
+      required: [valid, issues, suggestions]
+      properties:
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        parsedParams:
+          type: object
+          additionalProperties:
+            type: string
+
+    # ─── Webhooks ──────────────────────────────────────────────────────────
+    WebhookEndpoint:
+      type: object
+      required: [id, workspaceId, name, slug, url, createdAt, totalEvents]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+        description:
+          type: ["string", "null"]
+        totalEvents:
+          type: integer
+        lastEventAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    WebhookEndpointInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+
+    WebhookEndpointDetail:
+      type: object
+      required: [id, workspaceId, name, slug, url, createdAt, totalEvents, recentEvents]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+        description:
+          type: ["string", "null"]
+        totalEvents:
+          type: integer
+        lastEventAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        recentEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEvent"
+
+    WebhookEvent:
+      type: object
+      required: [id, endpointId, timestamp, method, statusCode, ip]
+      properties:
+        id:
+          type: integer
+        endpointId:
+          type: integer
+        timestamp:
+          type: string
+        method:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        payload:
+          type: object
+          additionalProperties: true
+        statusCode:
+          type: integer
+        ip:
+          type: ["string", "null"]
+        origin:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [received, processed, failed]
+
+    # ─── Events ────────────────────────────────────────────────────────────
+    TrackingEvent:
+      type: object
+      required: [id, workspaceId, eventType, timestamp]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        eventType:
+          type: string
+          enum: [click, lead, webhook, crm, sale]
+        leadId:
+          type: ["string", "null"]
+        campaignId:
+          type: ["integer", "null"]
+        campaignName:
+          type: ["string", "null"]
+        source:
+          type: ["string", "null"]
+        medium:
+          type: ["string", "null"]
+        metadata:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+
+    # ─── Conversions ───────────────────────────────────────────────────────
+    Conversion:
+      type: object
+      required: [id, workspaceId, revenue, createdAt]
+      properties:
+        id:
+          type: integer
+        workspaceId:
+          type: integer
+        campaignId:
+          type: ["integer", "null"]
+        campaignName:
+          type: ["string", "null"]
+        leadId:
+          type: ["string", "null"]
+        revenue:
+          type: number
+        platform:
+          type: ["string", "null"]
+        source:
+          type: ["string", "null"]
+        medium:
+          type: ["string", "null"]
+        creative:
+          type: ["string", "null"]
+        adSpend:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    ConversionInput:
+      type: object
+      required: [revenue]
+      properties:
+        campaignId:
+          type: integer
+        leadId:
+          type: string
+        revenue:
+          type: number
+        platform:
+          type: string
+        source:
+          type: string
+        medium:
+          type: string
+        creative:
+          type: string
+        adSpend:
+          type: number
+
+    ConversionSummary:
+      type: object
+      required: [totalRevenue, totalConversions, averageTicket, byCampaign, byPlatform]
+      properties:
+        totalRevenue:
+          type: number
+        totalConversions:
+          type: integer
+        averageTicket:
+          type: number
+        byCampaign:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversionBucket"
+        byPlatform:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversionBucket"
+        byCreative:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversionBucket"
+
+    ConversionBucket:
+      type: object
+      required: [label, conversions, revenue]
+      properties:
+        label:
+          type: string
+        conversions:
+          type: integer
+        revenue:
+          type: number
+        roas:
+          type: ["number", "null"]
