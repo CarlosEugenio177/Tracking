@@ -1,7 +1,7 @@
 import React from "react";
 import { useGetDashboardStats, useGetDashboardTimeline, useListWorkspaces } from "@workspace/api-client-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Activity, MousePointerClick, Users, DollarSign } from "lucide-react";
+import { Activity, MousePointerClick, Users, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Dashboard() {
@@ -21,10 +21,10 @@ export default function Dashboard() {
   }
 
   const kpis = [
-    { name: "Total Clicks", value: stats?.clicks?.toLocaleString() || "0", icon: MousePointerClick, color: "text-primary" },
-    { name: "Total Leads", value: stats?.leads?.toLocaleString() || "0", icon: Users, color: "text-chart-2" },
-    { name: "Conversions", value: stats?.conversions?.toLocaleString() || "0", icon: Activity, color: "text-chart-3" },
-    { name: "Revenue", value: `$${stats?.revenue?.toLocaleString() || "0"}`, icon: DollarSign, color: "text-chart-5" },
+    { name: "Total de Cliques", value: stats?.clicks?.toLocaleString('pt-BR') || "0", icon: MousePointerClick, color: "text-primary" },
+    { name: "Total de Leads", value: stats?.leads?.toLocaleString('pt-BR') || "0", icon: Users, color: "text-chart-2" },
+    { name: "Conversões", value: stats?.conversions?.toLocaleString('pt-BR') || "0", icon: Activity, color: "text-chart-3" },
+    { name: "Receita", value: `R$ ${stats?.revenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || "0"}`, icon: DollarSign, color: "text-chart-5" },
   ];
 
   return (
@@ -46,7 +46,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 p-6 rounded-xl bg-card border border-border shadow-sm">
-          <h3 className="text-lg font-semibold mb-6">Performance Timeline</h3>
+          <h3 className="text-lg font-semibold mb-6">Linha do Tempo de Desempenho</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={timeline || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -58,10 +58,11 @@ export default function Dashboard() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${v}`} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                   itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  formatter={(v: number) => [`R$ ${v.toLocaleString('pt-BR')}`, 'Receita']}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
@@ -70,7 +71,7 @@ export default function Dashboard() {
         </div>
 
         <div className="p-6 rounded-xl bg-card border border-border shadow-sm flex flex-col">
-          <h3 className="text-lg font-semibold mb-6">Top Campaigns</h3>
+          <h3 className="text-lg font-semibold mb-6">Top Campanhas</h3>
           <div className="space-y-4 flex-1">
             {stats?.topCampaigns?.map((camp) => (
               <div key={camp.campaignId} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
@@ -78,17 +79,17 @@ export default function Dashboard() {
                   <Link href={`/campaigns/${camp.campaignId}`} className="font-medium hover:text-primary transition-colors">
                     {camp.campaignName}
                   </Link>
-                  <div className="text-xs text-muted-foreground mt-1">{camp.clicks} clicks</div>
+                  <div className="text-xs text-muted-foreground mt-1">{camp.clicks} cliques</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-medium">${camp.revenue.toLocaleString()}</div>
+                  <div className="font-medium">R$ {camp.revenue.toLocaleString('pt-BR')}</div>
                   <div className="text-xs text-chart-2 mt-1">{camp.roas}x ROAS</div>
                 </div>
               </div>
             ))}
             {(!stats?.topCampaigns || stats.topCampaigns.length === 0) && (
               <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-                No active campaigns
+                Nenhuma campanha ativa
               </div>
             )}
           </div>

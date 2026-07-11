@@ -22,13 +22,13 @@ export function Sidebar() {
   const activeWorkspace = workspaces?.[0];
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Campaigns", href: "/campaigns", icon: Megaphone },
+    { name: "Painel", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Campanhas", href: "/campaigns", icon: Megaphone },
     { name: "Links", href: "/links", icon: LinkIcon },
-    { name: "UTM Generator", href: "/links/utm", icon: Target, isSub: true },
+    { name: "Gerador de UTM", href: "/links/utm", icon: Target, isSub: true },
     { name: "Webhooks", href: "/webhooks", icon: Webhook },
-    { name: "Events", href: "/events", icon: Activity },
-    { name: "Conversions", href: "/conversions", icon: DollarSign },
+    { name: "Eventos", href: "/events", icon: Activity },
+    { name: "Conversões", href: "/conversions", icon: DollarSign },
   ];
 
   return (
@@ -44,13 +44,13 @@ export function Sidebar() {
         <div>
           <h1 className="font-semibold text-sidebar-foreground leading-none">TrackFlow</h1>
           <p className="text-xs text-sidebar-foreground/50 mt-1 truncate w-40">
-            {activeWorkspace?.name || "Loading..."}
+            {activeWorkspace?.name || "Carregando..."}
           </p>
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        <div className="text-xs font-medium text-sidebar-foreground/40 mb-2 px-2">OVERVIEW</div>
+        <div className="text-xs font-medium text-sidebar-foreground/40 mb-2 px-2">VISÃO GERAL</div>
         {navItems.map((item) => {
           const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href + "/"));
           const Icon = item.icon;
@@ -62,10 +62,10 @@ export function Sidebar() {
           );
         })}
 
-        <div className="mt-8 text-xs font-medium text-sidebar-foreground/40 mb-2 px-2">SYSTEM</div>
+        <div className="mt-8 text-xs font-medium text-sidebar-foreground/40 mb-2 px-2">SISTEMA</div>
         <Link href="/settings" className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${location === "/settings" ? "bg-primary/10 text-primary" : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"}`}>
           <Settings size={16} />
-          Settings
+          Configurações
         </Link>
       </div>
 
@@ -75,7 +75,7 @@ export function Sidebar() {
           className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
         >
           <LogOut size={16} />
-          Sign Out
+          Sair
         </button>
       </div>
     </div>

@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { useListEvents, useListWorkspaces, useListCampaigns } from "@workspace/api-client-react";
+import { useListEvents, useListWorkspaces } from "@workspace/api-client-react";
 import { Filter, Search, ShieldCheck, Zap, Activity, MousePointerClick, Users, Webhook, DollarSign } from "lucide-react";
 import { Link } from "wouter";
+
+const EVENT_TYPE_PT: Record<string, string> = {
+  click: "clique",
+  lead: "lead",
+  webhook: "webhook",
+  crm: "crm",
+  sale: "venda",
+};
 
 export default function Events() {
   const { data: workspaces } = useListWorkspaces({ query: { queryKey: ["/api/workspaces"] } });
@@ -27,15 +35,12 @@ export default function Events() {
     }
   };
 
-  // Necessary icons import inside the file
-  const { MousePointerClick, Users, Webhook, DollarSign } = require("lucide-react");
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Event Pipeline</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Pipeline de Eventos</h1>
         <div className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full flex items-center gap-2">
-          <Zap size={14} /> Live Sync Active
+          <Zap size={14} /> Sincronização ao Vivo
         </div>
       </div>
 
@@ -44,7 +49,7 @@ export default function Events() {
           <Search size={16} className="text-muted-foreground" />
           <input 
             type="text" 
-            placeholder="Filter by Lead ID..." 
+            placeholder="Filtrar por Lead ID..." 
             className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 placeholder:text-muted-foreground"
             value={filterLeadId}
             onChange={(e) => setFilterLeadId(e.target.value)}
@@ -52,14 +57,14 @@ export default function Events() {
         </div>
         <div className="w-full md:w-px h-px md:h-6 bg-border"></div>
         <div className="flex items-center gap-2 flex-wrap flex-1">
-          <span className="text-xs font-medium text-muted-foreground mr-2"><Filter size={14} className="inline mr-1"/> Event Type:</span>
+          <span className="text-xs font-medium text-muted-foreground mr-2"><Filter size={14} className="inline mr-1"/> Tipo de Evento:</span>
           {["", "click", "lead", "webhook", "crm", "sale"].map(type => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
               className={`px-3 py-1 rounded-md text-xs font-medium uppercase tracking-wider transition-colors ${filterType === type ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'}`}
             >
-              {type || "All"}
+              {type ? (EVENT_TYPE_PT[type] || type) : "Todos"}
             </button>
           ))}
         </div>
@@ -68,12 +73,12 @@ export default function Events() {
       <div className="bg-card rounded-xl border border-border shadow-sm p-6">
         <div className="max-w-4xl mx-auto py-4">
           {isLoading ? (
-            <div className="text-center text-muted-foreground py-12 animate-pulse">Scanning pipeline...</div>
+            <div className="text-center text-muted-foreground py-12 animate-pulse">Escaneando pipeline...</div>
           ) : events?.length === 0 ? (
             <div className="text-center text-muted-foreground py-20 flex flex-col items-center">
               <ShieldCheck size={32} className="opacity-20 mb-4" />
-              <p>No tracking events match your filters.</p>
-              <button onClick={() => {setFilterType(''); setFilterLeadId('');}} className="text-primary mt-2 text-sm hover:underline">Clear filters</button>
+              <p>Nenhum evento corresponde aos filtros.</p>
+              <button onClick={() => {setFilterType(''); setFilterLeadId('');}} className="text-primary mt-2 text-sm hover:underline">Limpar filtros</button>
             </div>
           ) : (
             <div className="space-y-0 relative before:absolute before:inset-0 before:ml-[1.18rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
@@ -88,10 +93,10 @@ export default function Events() {
                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-4 rounded-xl border border-border bg-background shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-xs font-bold uppercase tracking-wider ${style.color}`}>
-                          {event.eventType}
+                          {EVENT_TYPE_PT[event.eventType] || event.eventType}
                         </span>
                         <time className="text-xs text-muted-foreground font-mono">
-                          {new Date(event.timestamp).toLocaleTimeString()}
+                          {new Date(event.timestamp).toLocaleTimeString('pt-BR')}
                         </time>
                       </div>
                       
@@ -104,16 +109,16 @@ export default function Events() {
 
                       {event.campaignId && (
                         <div className="mb-2 flex items-center gap-1">
-                          <span className="text-xs text-muted-foreground">Campaign:</span>
+                          <span className="text-xs text-muted-foreground">Campanha:</span>
                           <Link href={`/campaigns/${event.campaignId}`} className="text-sm font-medium hover:text-primary transition-colors ml-1">
-                            {event.campaignName || `Campaign #${event.campaignId}`}
+                            {event.campaignName || `Campanha #${event.campaignId}`}
                           </Link>
                         </div>
                       )}
 
                       <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                        {event.source && <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-muted rounded border border-border/50">src: {event.source}</span>}
-                        {event.medium && <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-muted rounded border border-border/50">med: {event.medium}</span>}
+                        {event.source && <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-muted rounded border border-border/50">origem: {event.source}</span>}
+                        {event.medium && <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-muted rounded border border-border/50">mídia: {event.medium}</span>}
                       </div>
                     </div>
                   </div>

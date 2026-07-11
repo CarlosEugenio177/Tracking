@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useGetWebhookEndpoint, useListWebhookEvents, useListWorkspaces, useResendWebhookEvent } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
-import { ArrowLeft, RefreshCw, Copy, CheckCircle2, TerminalSquare, AlertCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, Copy, CheckCircle2, TerminalSquare } from "lucide-react";
 
 export default function WebhookDetail() {
   const params = useParams();
@@ -57,7 +57,7 @@ export default function WebhookDetail() {
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
             {endpoint?.name}
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-chart-2/10 text-chart-2 border border-chart-2/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-chart-2 animate-pulse" /> Active
+              <span className="w-1.5 h-1.5 rounded-full bg-chart-2 animate-pulse" /> Ativo
             </span>
           </h1>
         </div>
@@ -65,7 +65,7 @@ export default function WebhookDetail() {
 
       <div className="bg-card rounded-xl border border-border shadow-sm p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-1 space-y-1 w-full overflow-hidden">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ingest URL</div>
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">URL de Ingestão</div>
           <div className="flex items-center gap-2">
             <code className="text-sm font-mono bg-muted px-3 py-2 rounded-md border border-border/50 truncate flex-1">
               {endpoint?.url}
@@ -74,20 +74,20 @@ export default function WebhookDetail() {
               onClick={handleCopyUrl}
               className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-2 rounded-md hover:bg-secondary/80 transition-colors font-medium text-sm flex-shrink-0"
             >
-              {copiedUrl ? <><CheckCircle2 size={16} className="text-chart-2" /> Copied</> : <><Copy size={16} /> Copy</>}
+              {copiedUrl ? <><CheckCircle2 size={16} className="text-chart-2" /> Copiado</> : <><Copy size={16} /> Copiar</>}
             </button>
           </div>
         </div>
         <div className="hidden md:block w-px h-12 bg-border mx-4"></div>
         <div className="flex gap-8">
           <div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Events</div>
-            <div className="text-xl font-bold font-mono">{endpoint?.totalEvents.toLocaleString() || 0}</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Total de Eventos</div>
+            <div className="text-xl font-bold font-mono">{endpoint?.totalEvents.toLocaleString('pt-BR') || 0}</div>
           </div>
           <div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Created</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Criado em</div>
             <div className="text-sm font-medium pt-1 text-foreground">
-              {endpoint?.createdAt ? new Date(endpoint.createdAt).toLocaleDateString() : '—'}
+              {endpoint?.createdAt ? new Date(endpoint.createdAt).toLocaleDateString('pt-BR') : '—'}
             </div>
           </div>
         </div>
@@ -96,21 +96,21 @@ export default function WebhookDetail() {
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
           <h3 className="font-semibold flex items-center gap-2">
-            <TerminalSquare size={16} /> Request Logs
+            <TerminalSquare size={16} /> Logs de Requisição
           </h3>
           <button className="text-xs font-medium flex items-center gap-2 text-muted-foreground hover:text-foreground">
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} /> Atualizar
           </button>
         </div>
         
         <div className="divide-y divide-border overflow-x-auto">
           {eventsLoading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading request logs...</div>
+            <div className="p-8 text-center text-muted-foreground">Carregando logs...</div>
           ) : events?.length === 0 ? (
             <div className="p-12 flex flex-col items-center justify-center text-muted-foreground">
               <TerminalSquare size={32} className="opacity-20 mb-3" />
-              <p>No requests received yet.</p>
-              <p className="text-sm mt-1">Send a POST request to your ingest URL to see it appear here.</p>
+              <p>Nenhuma requisição recebida ainda.</p>
+              <p className="text-sm mt-1">Envie uma requisição POST para a URL de ingestão para vê-la aparecer aqui.</p>
             </div>
           ) : (
             events?.map((event) => (
@@ -126,15 +126,15 @@ export default function WebhookDetail() {
                     {event.statusCode} {event.status}
                   </div>
                   <div className="font-mono text-xs text-muted-foreground flex-1 truncate">
-                    {event.ip || 'Unknown IP'} {event.origin ? `• ${event.origin}` : ''}
+                    {event.ip || 'IP Desconhecido'} {event.origin ? `• ${event.origin}` : ''}
                   </div>
                   <div className="text-xs text-muted-foreground font-mono">
-                    {new Date(event.timestamp).toLocaleString()}
+                    {new Date(event.timestamp).toLocaleString('pt-BR')}
                   </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleResend(event.id); }}
                     className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-                    title="Replay Event"
+                    title="Reenviar Evento"
                   >
                     <RefreshCw size={14} />
                   </button>
@@ -143,7 +143,7 @@ export default function WebhookDetail() {
                 {expandedEvent === event.id && (
                   <div className="p-4 bg-[#050505] border-t border-border font-mono text-xs overflow-x-auto">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-muted-foreground font-medium">Headers</span>
+                      <span className="text-muted-foreground font-medium">Cabeçalhos</span>
                     </div>
                     <pre className="text-chart-3 mb-6 bg-black p-3 rounded border border-zinc-800/50">
                       {JSON.stringify(event.headers, null, 2)}

@@ -1,8 +1,22 @@
 import React from "react";
 import { useGetCampaign, useGetCampaignStats, useListLinks, useListEvents, useListWorkspaces } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
-import { MousePointerClick, Users, Activity, DollarSign, ArrowLeft, ExternalLink, ShieldCheck } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import { MousePointerClick, Users, Activity, DollarSign, ArrowLeft, ShieldCheck } from "lucide-react";
+
+const STATUS_PT: Record<string, string> = {
+  active: "Ativa",
+  paused: "Pausada",
+  completed: "Concluída",
+  draft: "Rascunho",
+};
+
+const EVENT_TYPE_PT: Record<string, string> = {
+  click: "clique",
+  lead: "lead",
+  webhook: "webhook",
+  crm: "crm",
+  sale: "venda",
+};
 
 export default function CampaignDetail() {
   const params = useParams();
@@ -27,7 +41,7 @@ export default function CampaignDetail() {
     query: { enabled: !!workspaceId && !!campaignId, queryKey: ["/api/workspaces", workspaceId, "events", { campaignId }] }
   });
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     paused: "bg-chart-3/10 text-chart-3 border-chart-3/20",
     completed: "bg-primary/10 text-primary border-primary/20",
@@ -35,10 +49,10 @@ export default function CampaignDetail() {
   };
 
   const kpis = [
-    { name: "Clicks", value: stats?.clicks?.toLocaleString() || "0", icon: MousePointerClick, color: "text-primary" },
-    { name: "Leads", value: stats?.leads?.toLocaleString() || "0", icon: Users, color: "text-chart-2" },
-    { name: "Conversions", value: stats?.conversions?.toLocaleString() || "0", icon: Activity, color: "text-chart-3" },
-    { name: "Revenue", value: `$${stats?.revenue?.toLocaleString() || "0"}`, icon: DollarSign, color: "text-chart-5" },
+    { name: "Cliques", value: stats?.clicks?.toLocaleString('pt-BR') || "0", icon: MousePointerClick, color: "text-primary" },
+    { name: "Leads", value: stats?.leads?.toLocaleString('pt-BR') || "0", icon: Users, color: "text-chart-2" },
+    { name: "Conversões", value: stats?.conversions?.toLocaleString('pt-BR') || "0", icon: Activity, color: "text-chart-3" },
+    { name: "Receita", value: `R$ ${stats?.revenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || "0"}`, icon: DollarSign, color: "text-chart-5" },
   ];
 
   const getEventColor = (type: string) => {
@@ -72,11 +86,11 @@ export default function CampaignDetail() {
           <h1 className="text-2xl font-bold tracking-tight">{campaign?.name}</h1>
           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border uppercase tracking-wider ${campaign?.status ? statusColors[campaign.status] : ''}`}>
-              {campaign?.status}
+              {campaign?.status ? STATUS_PT[campaign.status] || campaign.status : ''}
             </span>
             <span>{campaign?.platform}</span>
             <span>•</span>
-            <span>Budget: {campaign?.budget ? `$${campaign.budget.toLocaleString()}` : "Uncapped"}</span>
+            <span>Orçamento: {campaign?.budget ? `R$ ${campaign.budget.toLocaleString('pt-BR')}` : "Sem limite"}</span>
           </div>
         </div>
       </div>
@@ -100,25 +114,25 @@ export default function CampaignDetail() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 border-b border-border flex justify-between items-center bg-muted/20">
-              <h3 className="font-semibold">Tracked Links</h3>
+              <h3 className="font-semibold">Links Rastreados</h3>
               <Link href="/links/utm" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                + New Link
+                + Novo Link
               </Link>
             </div>
             <div className="p-0 overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-muted/30 text-muted-foreground text-xs uppercase tracking-wider">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Final URL</th>
-                    <th className="px-4 py-3 font-medium">Source/Medium</th>
-                    <th className="px-4 py-3 font-medium text-right">Clicks</th>
+                    <th className="px-4 py-3 font-medium">URL Final</th>
+                    <th className="px-4 py-3 font-medium">Fonte/Mídia</th>
+                    <th className="px-4 py-3 font-medium text-right">Cliques</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {linksLoading ? (
-                    <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">Loading links...</td></tr>
+                    <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">Carregando links...</td></tr>
                   ) : links?.length === 0 ? (
-                    <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">No links generated yet</td></tr>
+                    <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">Nenhum link gerado ainda</td></tr>
                   ) : (
                     links?.map((link) => (
                       <tr key={link.id} className="hover:bg-muted/30 transition-colors">
@@ -131,7 +145,7 @@ export default function CampaignDetail() {
                           {link.utmSource}/{link.utmMedium}
                         </td>
                         <td className="px-4 py-3 text-right font-medium">
-                          {link.clicks?.toLocaleString() || 0}
+                          {link.clicks?.toLocaleString('pt-BR') || 0}
                         </td>
                       </tr>
                     ))
@@ -145,18 +159,18 @@ export default function CampaignDetail() {
         <div className="space-y-6">
           <div className="bg-card rounded-xl border border-border shadow-sm flex flex-col h-[500px]">
             <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
-              <h3 className="font-semibold">Recent Pipeline Events</h3>
+              <h3 className="font-semibold">Eventos Recentes</h3>
               <ShieldCheck size={16} className="text-chart-2" />
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {eventsLoading ? (
-                <div className="text-center text-muted-foreground text-sm py-4">Loading events...</div>
+                <div className="text-center text-muted-foreground text-sm py-4">Carregando eventos...</div>
               ) : events?.length === 0 ? (
-                <div className="text-center text-muted-foreground text-sm py-8">No pipeline events recorded.</div>
+                <div className="text-center text-muted-foreground text-sm py-8">Nenhum evento registrado.</div>
               ) : (
                 events?.slice(0, 20).map((event, idx) => (
                   <div key={event.id} className="relative flex gap-4">
-                    {idx !== events.length - 1 && (
+                    {idx !== (events?.length ?? 0) - 1 && (
                       <div className="absolute top-6 left-[11px] bottom-[-16px] w-[2px] bg-border z-0"></div>
                     )}
                     <div className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold uppercase tracking-tighter ${getEventColor(event.eventType)}`}>
@@ -164,9 +178,9 @@ export default function CampaignDetail() {
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium capitalize">{event.eventType}</span>
+                        <span className="text-sm font-medium capitalize">{EVENT_TYPE_PT[event.eventType] || event.eventType}</span>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          {new Date(event.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-1 break-all">

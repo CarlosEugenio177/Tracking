@@ -24,36 +24,36 @@ export default function Settings() {
     updateWorkspace.mutate(
       { workspaceId, data: form },
       {
-        onSuccess: () => toast({ title: "Workspace updated successfully." }),
-        onError: () => toast({ title: "Failed to update workspace.", variant: "destructive" })
+        onSuccess: () => toast({ title: "Workspace atualizado com sucesso." }),
+        onError: () => toast({ title: "Erro ao atualizar o workspace.", variant: "destructive" })
       }
     );
   };
 
   const integrations = [
-    { name: "Meta Ads", icon: Globe, status: "Coming Soon", color: "bg-blue-600" },
-    { name: "Google Ads", icon: SearchIcon, status: "Coming Soon", color: "bg-red-500" },
-    { name: "HubSpot", icon: Database, status: "Coming Soon", color: "bg-orange-500" },
-    { name: "Slack", icon: MessageSquare, status: "Coming Soon", color: "bg-purple-600" },
+    { name: "Meta Ads", icon: Globe, status: "Em Breve", color: "bg-blue-600" },
+    { name: "Google Ads", icon: SearchIcon, status: "Em Breve", color: "bg-red-500" },
+    { name: "HubSpot", icon: Database, status: "Em Breve", color: "bg-orange-500" },
+    { name: "Slack", icon: MessageSquare, status: "Em Breve", color: "bg-purple-600" },
   ];
 
   return (
     <div className="max-w-4xl space-y-10">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Workspace Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your organization identity and integrations.</p>
+        <h1 className="text-2xl font-bold tracking-tight">Configurações do Workspace</h1>
+        <p className="text-muted-foreground mt-1">Gerencie a identidade da sua organização e integrações.</p>
       </div>
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Building2 size={20} className="text-primary" /> General Profile
+            <Building2 size={20} className="text-primary" /> Perfil Geral
           </h3>
         </div>
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Workspace Name</label>
+              <label className="text-sm font-medium">Nome do Workspace</label>
               <input 
                 type="text" 
                 required
@@ -64,7 +64,7 @@ export default function Settings() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Workspace Slug (URL)</label>
+              <label className="text-sm font-medium">Slug do Workspace (URL)</label>
               <div className="flex">
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-border bg-muted text-muted-foreground text-sm">
                   app.trackflow.com/
@@ -84,7 +84,7 @@ export default function Settings() {
               disabled={updateWorkspace.isPending}
               className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-md font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {updateWorkspace.isPending ? "Saving..." : <><Save size={16} /> Save Changes</>}
+              {updateWorkspace.isPending ? "Salvando..." : <><Save size={16} /> Salvar Alterações</>}
             </button>
           </form>
         </div>
@@ -93,9 +93,9 @@ export default function Settings() {
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Plug size={20} className="text-chart-5" /> Integrations
+            <Plug size={20} className="text-chart-5" /> Integrações
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">Connect external platforms directly to TrackFlow's data ingest.</p>
+          <p className="text-sm text-muted-foreground mt-1">Conecte plataformas externas diretamente à ingestão de dados do TrackFlow.</p>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -122,7 +122,7 @@ export default function Settings() {
   );
 }
 
-// Inline fallback for the search icon since we can't cleanly import random brand logos in lucide
+// Fallback inline para o ícone de busca, já que não podemos importar logos de marcas do lucide
 function SearchIcon(props: any) {
   return <Globe {...props} />;
 }

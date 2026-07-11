@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useListCampaigns, useListWorkspaces, useCreateCampaign } from "@workspace/api-client-react";
-import { Search, Plus, Filter, MoreHorizontal, ArrowRight } from "lucide-react";
+import { Search, Plus, Filter, MoreHorizontal } from "lucide-react";
 import { Link } from "wouter";
+
+const STATUS_PT: Record<string, string> = {
+  active: "Ativa",
+  paused: "Pausada",
+  completed: "Concluída",
+  draft: "Rascunho",
+};
 
 export default function Campaigns() {
   const { data: workspaces } = useListWorkspaces({ query: { queryKey: ["/api/workspaces"] } });
@@ -14,7 +21,7 @@ export default function Campaigns() {
     { query: { enabled: !!workspaceId, queryKey: ["/api/workspaces", workspaceId, "campaigns", search] } }
   );
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     paused: "bg-chart-3/10 text-chart-3 border-chart-3/20",
     completed: "bg-primary/10 text-primary border-primary/20",
@@ -24,9 +31,9 @@ export default function Campaigns() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Campanhas</h1>
         <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-primary/90 transition-colors">
-          <Plus size={16} /> New Campaign
+          <Plus size={16} /> Nova Campanha
         </button>
       </div>
 
@@ -35,7 +42,7 @@ export default function Campaigns() {
           <Search size={16} className="text-muted-foreground" />
           <input 
             type="text" 
-            placeholder="Search campaigns..." 
+            placeholder="Buscar campanhas..." 
             className="bg-transparent border-none outline-none text-sm w-full h-9 focus:ring-0 placeholder:text-muted-foreground"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -43,7 +50,7 @@ export default function Campaigns() {
         </div>
         <div className="w-[1px] h-6 bg-border"></div>
         <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <Filter size={16} /> Filter
+          <Filter size={16} /> Filtrar
         </button>
       </div>
 
@@ -52,25 +59,25 @@ export default function Campaigns() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-6 py-4 font-medium">Name</th>
+                <th className="px-6 py-4 font-medium">Nome</th>
                 <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium">Platform</th>
-                <th className="px-6 py-4 font-medium">Budget</th>
-                <th className="px-6 py-4 font-medium">Created</th>
+                <th className="px-6 py-4 font-medium">Plataforma</th>
+                <th className="px-6 py-4 font-medium">Orçamento</th>
+                <th className="px-6 py-4 font-medium">Criado em</th>
                 <th className="px-6 py-4 font-medium w-10"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Loading campaigns...</td>
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">Carregando campanhas...</td>
                 </tr>
               ) : campaigns?.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <Search size={24} className="opacity-20" />
-                      <p>No campaigns found</p>
+                      <p>Nenhuma campanha encontrada</p>
                     </div>
                   </td>
                 </tr>
@@ -83,13 +90,13 @@ export default function Campaigns() {
                       </Link>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[campaign.status]}`}>
-                        {campaign.status}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[campaign.status] || statusColors.draft}`}>
+                        {STATUS_PT[campaign.status] || campaign.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">{campaign.platform || "—"}</td>
-                    <td className="px-6 py-4 font-medium">{campaign.budget ? `$${campaign.budget.toLocaleString()}` : "—"}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{new Date(campaign.createdAt).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 font-medium">{campaign.budget ? `R$ ${campaign.budget.toLocaleString('pt-BR')}` : "—"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{new Date(campaign.createdAt).toLocaleDateString('pt-BR')}</td>
                     <td className="px-6 py-4 text-right">
                       <button className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted transition-colors">
                         <MoreHorizontal size={16} />

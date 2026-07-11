@@ -37,9 +37,9 @@ export default function Conversions() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Conversions</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Conversões</h1>
         <button className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-secondary/80 transition-colors border border-border">
-          <Filter size={16} /> Date Range: Last 30 Days
+          <Filter size={16} /> Período: Últimos 30 Dias
         </button>
       </div>
 
@@ -47,31 +47,31 @@ export default function Conversions() {
         <div className="p-6 rounded-xl bg-card border border-border shadow-sm flex flex-col gap-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
           <div className="flex items-center justify-between text-muted-foreground relative z-10">
-            <span className="text-sm font-medium">Total Revenue</span>
+            <span className="text-sm font-medium">Receita Total</span>
             <DollarSign size={16} className="text-primary" />
           </div>
           <div className="text-4xl font-bold tracking-tight relative z-10">
-            ${summary?.totalRevenue?.toLocaleString() || "0"}
+            R$ {summary?.totalRevenue?.toLocaleString('pt-BR') || "0"}
           </div>
         </div>
         <div className="p-6 rounded-xl bg-card border border-border shadow-sm flex flex-col gap-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-chart-2/5 rounded-bl-full -z-0"></div>
           <div className="flex items-center justify-between text-muted-foreground relative z-10">
-            <span className="text-sm font-medium">Verified Conversions</span>
+            <span className="text-sm font-medium">Conversões Verificadas</span>
             <TrendingUp size={16} className="text-chart-2" />
           </div>
           <div className="text-4xl font-bold tracking-tight relative z-10">
-            {summary?.totalConversions?.toLocaleString() || "0"}
+            {summary?.totalConversions?.toLocaleString('pt-BR') || "0"}
           </div>
         </div>
         <div className="p-6 rounded-xl bg-card border border-border shadow-sm flex flex-col gap-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-chart-3/5 rounded-bl-full -z-0"></div>
           <div className="flex items-center justify-between text-muted-foreground relative z-10">
-            <span className="text-sm font-medium">Avg. Ticket Size</span>
+            <span className="text-sm font-medium">Ticket Médio</span>
             <Percent size={16} className="text-chart-3" />
           </div>
           <div className="text-4xl font-bold tracking-tight relative z-10">
-            ${summary?.averageTicket?.toLocaleString() || "0"}
+            R$ {summary?.averageTicket?.toLocaleString('pt-BR') || "0"}
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function Conversions() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl border border-border shadow-sm p-6">
           <h3 className="font-semibold mb-6 flex items-center gap-2">
-            <BarChart3 size={18} className="text-primary" /> Revenue by Platform
+            <BarChart3 size={18} className="text-primary" /> Receita por Plataforma
           </h3>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -100,7 +100,7 @@ export default function Conversions() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']}
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                   itemStyle={{ color: 'hsl(var(--foreground))' }}
                 />
@@ -119,7 +119,7 @@ export default function Conversions() {
 
         <div className="bg-card rounded-xl border border-border shadow-sm p-6">
           <h3 className="font-semibold mb-6 flex items-center gap-2">
-            <BarChart3 size={18} className="text-chart-2" /> Top Campaigns (ROAS)
+            <BarChart3 size={18} className="text-chart-2" /> Top Campanhas (ROAS)
           </h3>
           <div className="h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -142,29 +142,29 @@ export default function Conversions() {
 
       <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="p-4 border-b border-border bg-muted/20">
-          <h3 className="font-semibold">Recent Conversions Ledger</h3>
+          <h3 className="font-semibold">Registro de Conversões Recentes</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-muted/30 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-medium">Timestamp</th>
+                <th className="px-6 py-4 font-medium">Data/Hora</th>
                 <th className="px-6 py-4 font-medium">Lead ID</th>
-                <th className="px-6 py-4 font-medium">Campaign</th>
-                <th className="px-6 py-4 font-medium">Source</th>
-                <th className="px-6 py-4 font-medium text-right">Revenue</th>
+                <th className="px-6 py-4 font-medium">Campanha</th>
+                <th className="px-6 py-4 font-medium">Fonte</th>
+                <th className="px-6 py-4 font-medium text-right">Receita</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {conversionsLoading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Loading ledger...</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Carregando registros...</td></tr>
               ) : conversions?.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No conversions recorded yet.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Nenhuma conversão registrada ainda.</td></tr>
               ) : (
                 conversions?.map((conv) => (
                   <tr key={conv.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4 text-muted-foreground font-mono text-xs">
-                      {new Date(conv.createdAt).toLocaleString()}
+                      {new Date(conv.createdAt).toLocaleString('pt-BR')}
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-mono text-xs bg-muted px-2 py-1 rounded border border-border/50">{conv.leadId || '—'}</span>
@@ -177,10 +177,10 @@ export default function Conversions() {
                       ) : '—'}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {conv.source || conv.platform || 'Direct'}
+                      {conv.source || conv.platform || 'Direto'}
                     </td>
                     <td className="px-6 py-4 text-right font-bold text-chart-2">
-                      ${conv.revenue.toLocaleString()}
+                      R$ {conv.revenue.toLocaleString('pt-BR')}
                     </td>
                   </tr>
                 ))

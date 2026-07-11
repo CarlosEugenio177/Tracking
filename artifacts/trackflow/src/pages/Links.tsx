@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useListLinks, useListWorkspaces, useGenerateUtm } from "@workspace/api-client-react";
+import { useListLinks, useListWorkspaces } from "@workspace/api-client-react";
 import { Search, Plus, ExternalLink, Copy, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -24,9 +24,9 @@ export default function Links() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Tracked Links</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Links Rastreados</h1>
         <Link href="/links/utm" className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-primary/90 transition-colors">
-          <Plus size={16} /> Generate UTM
+          <Plus size={16} /> Gerar UTM
         </Link>
       </div>
 
@@ -35,7 +35,7 @@ export default function Links() {
           <Search size={16} className="text-muted-foreground" />
           <input 
             type="text" 
-            placeholder="Search URLs or parameters..." 
+            placeholder="Buscar URLs ou parâmetros..." 
             className="bg-transparent border-none outline-none text-sm w-full h-9 focus:ring-0 placeholder:text-muted-foreground"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -48,21 +48,21 @@ export default function Links() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-6 py-4 font-medium">Final URL</th>
-                <th className="px-6 py-4 font-medium">Campaign</th>
-                <th className="px-6 py-4 font-medium">Source / Medium</th>
-                <th className="px-6 py-4 font-medium">Clicks</th>
+                <th className="px-6 py-4 font-medium">URL Final</th>
+                <th className="px-6 py-4 font-medium">Campanha</th>
+                <th className="px-6 py-4 font-medium">Fonte / Mídia</th>
+                <th className="px-6 py-4 font-medium">Cliques</th>
                 <th className="px-6 py-4 font-medium w-10"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Loading links...</td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">Carregando links...</td>
                 </tr>
               ) : links?.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No links found</td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Nenhum link encontrado</td>
                 </tr>
               ) : (
                 links?.map((link) => (
@@ -89,14 +89,14 @@ export default function Links() {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium">
-                      {link.clicks?.toLocaleString() || 0}
+                      {link.clicks?.toLocaleString('pt-BR') || 0}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center gap-2 justify-end">
                         <button 
                           onClick={() => handleCopy(link.finalUrl, link.id)}
                           className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors"
-                          title="Copy URL"
+                          title="Copiar URL"
                         >
                           {copiedId === link.id ? <CheckCircle2 size={16} className="text-chart-2" /> : <Copy size={16} />}
                         </button>
