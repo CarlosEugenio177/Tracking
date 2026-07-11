@@ -1,24 +1,41 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useGetConversionSummary, useListWorkspaces, useListConversions } from "@workspace/api-client-react";
-import { DollarSign, Percent, TrendingUp, BarChart3, Filter } from "lucide-react";
+import { DollarSign, Percent, TrendingUp, BarChart3, Filter, Check } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Link } from "wouter";
+
+const PERIOD_OPTIONS = [
+  { days: 7, label: "Últimos 7 Dias" },
+  { days: 30, label: "Últimos 30 Dias" },
+  { days: 90, label: "Últimos 90 Dias" },
+];
 
 export default function Conversions() {
   const { data: workspaces } = useListWorkspaces({ query: { queryKey: ["/api/workspaces"] } });
   const workspaceId = workspaces?.[0]?.id || 1;
 
+  const [periodDays, setPeriodDays] = useState(30);
+  const [periodOpen, setPeriodOpen] = useState(false);
+
+  const startDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - periodDays);
+    return d.toISOString().slice(0, 10);
+  }, [periodDays]);
+
   const { data: summary, isLoading: summaryLoading } = useGetConversionSummary(
     workspaceId, 
-    {}, 
-    { query: { enabled: !!workspaceId, queryKey: ["/api/workspaces", workspaceId, "conversions", "summary"] } }
+    { startDate }, 
+    { query: { enabled: !!workspaceId, queryKey: ["/api/workspaces", workspaceId, "conversions", "summary", startDate] } }
   );
 
   const { data: conversions, isLoading: conversionsLoading } = useListConversions(
     workspaceId,
-    {},
-    { query: { enabled: !!workspaceId, queryKey: ["/api/workspaces", workspaceId, "conversions"] } }
+    { startDate },
+    { query: { enabled: !!workspaceId, queryKey: ["/api/workspaces", workspaceId, "conversions", startDate] } }
   );
+
+  const currentPeriodLabel = PERIOD_OPTIONS.find(p => p.days === periodDays)?.label || "Período";
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -38,9 +55,30 @@ export default function Conversions() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Conversões</h1>
-        <button className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-secondary/80 transition-colors border border-border">
-          <Filter size={16} /> Período: Últimos 30 Dias
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setPeriodOpen(!periodOpen)}
+            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-secondary/80 transition-colors border border-border"
+          >
+            <Filter size={16} /> Período: {currentPeriodLabel}
+          </button>
+          {periodOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setPeriodOpen(false)} />
+              <div className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-md shadow-lg z-20 py-1">
+                {PERIOD_OPTIONS.map(opt => (
+                  <button
+                    key={opt.days}
+                    onClick={() => { setPeriodDays(opt.days); setPeriodOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center justify-between"
+                  >
+                    {opt.label} {periodDays === opt.days && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

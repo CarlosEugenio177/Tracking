@@ -14,7 +14,7 @@ export default function WebhookDetail() {
     query: { enabled: !!workspaceId && !!endpointId, queryKey: ["/api/workspaces", workspaceId, "webhooks", endpointId] } 
   });
 
-  const { data: events, isLoading: eventsLoading } = useListWebhookEvents(workspaceId, endpointId, {}, {
+  const { data: events, isLoading: eventsLoading, isRefetching: eventsRefetching, refetch: refetchEvents } = useListWebhookEvents(workspaceId, endpointId, {}, {
     query: { enabled: !!workspaceId && !!endpointId, queryKey: ["/api/workspaces", workspaceId, "webhooks", endpointId, "events"] }
   });
 
@@ -98,8 +98,12 @@ export default function WebhookDetail() {
           <h3 className="font-semibold flex items-center gap-2">
             <TerminalSquare size={16} /> Logs de Requisição
           </h3>
-          <button className="text-xs font-medium flex items-center gap-2 text-muted-foreground hover:text-foreground">
-            <RefreshCw size={14} /> Atualizar
+          <button
+            onClick={() => refetchEvents()}
+            disabled={eventsRefetching}
+            className="text-xs font-medium flex items-center gap-2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={eventsRefetching ? "animate-spin" : ""} /> Atualizar
           </button>
         </div>
         
