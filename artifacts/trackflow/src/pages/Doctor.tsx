@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { v4 as uuidv4 } from "uuid";
+import ScannerDashboard from "@/components/ScannerDashboard";
 
 export default function Doctor() {
   const { toast } = useToast();
@@ -73,26 +74,6 @@ export default function Doctor() {
     },
   });
 
-  const scanMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/doctor/scan-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: scanUrl }),
-      });
-      return response.json();
-    },
-  });
-
-  const simulateMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/doctor/simulate-visit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: scanUrl }),
-      });
-      return response.json();
-    },
   });
 
   const { data: eventsData, refetch: fetchEvents } = useQuery({
@@ -128,8 +109,8 @@ export default function Doctor() {
             Connection Health
           </TabsTrigger>
           <TabsTrigger value="scanner" className="flex gap-2">
-            <Link2 className="h-4 w-4" />
-            URL Scanner
+            <Search className="h-4 w-4" />
+            Scanner V2
           </TabsTrigger>
           <TabsTrigger value="catcher" className="flex gap-2">
             <Radio className="h-4 w-4" />
@@ -270,135 +251,7 @@ export default function Doctor() {
         </TabsContent>
 
         <TabsContent value="scanner" className="space-y-4">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle>URL Scanner (Link Tester)</CardTitle>
-              <CardDescription>
-                Scan a website URL to detect installed tracking pixels (Facebook Pixel, GTM, Google Analytics).
-                We will download the HTML and the Javascript bundles to look for tracking code.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="url">Website URL</Label>
-                <Input 
-                  id="url" 
-                  placeholder="https://example.com" 
-                  value={scanUrl}
-                  onChange={(e) => setScanUrl(e.target.value)}
-                />
-              </div>
-
-              {scanMutation.data && scanMutation.data.success && (
-                <div className="space-y-4 pt-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className={`p-4 rounded-lg border flex flex-col items-center justify-center text-center gap-2 ${scanMutation.data.data.facebook ? 'bg-blue-500/10 border-blue-500/50 text-blue-500' : 'bg-zinc-100 dark:bg-zinc-900 border-dashed text-zinc-500'}`}>
-                      {scanMutation.data.data.facebook ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
-                      <span className="font-medium text-sm">Facebook Pixel</span>
-                    </div>
-                    <div className={`p-4 rounded-lg border flex flex-col items-center justify-center text-center gap-2 ${scanMutation.data.data.gtm ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-600' : 'bg-zinc-100 dark:bg-zinc-900 border-dashed text-zinc-500'}`}>
-                      {scanMutation.data.data.gtm ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
-                      <span className="font-medium text-sm">Google Tag Manager</span>
-                    </div>
-                    <div className={`p-4 rounded-lg border flex flex-col items-center justify-center text-center gap-2 ${scanMutation.data.data.googleAnalytics ? 'bg-orange-500/10 border-orange-500/50 text-orange-500' : 'bg-zinc-100 dark:bg-zinc-900 border-dashed text-zinc-500'}`}>
-                      {scanMutation.data.data.googleAnalytics ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
-                      <span className="font-medium text-sm">Google Analytics</span>
-                    </div>
-                  </div>
-                  
-                  {scanMutation.data.data.details.length > 0 && (
-                    <div className="bg-zinc-100 dark:bg-zinc-900 rounded-md p-4 mt-4">
-                      <h4 className="font-semibold text-sm mb-2">Technical Details:</h4>
-                      <ul className="text-xs space-y-1 font-mono text-zinc-600 dark:text-zinc-400">
-                        {scanMutation.data.data.details.map((detail: string, i: number) => (
-                          <li key={i}>• {detail}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {scanMutation.data && !scanMutation.data.success && (
-                 <Alert variant="destructive">
-                   <AlertTriangle className="h-4 w-4" />
-                   <AlertTitle>Scan Failed</AlertTitle>
-                   <AlertDescription>{scanMutation.data.message}</AlertDescription>
-                 </Alert>
-              )}
-              {simulateMutation.data && simulateMutation.data.success && (
-                <div className="space-y-4 pt-4 border-t mt-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-blue-500" />
-                    Intercepted Browser Events
-                  </h3>
-                  
-                  {simulateMutation.data.events.length === 0 ? (
-                    <div className="bg-zinc-100 dark:bg-zinc-900 rounded-lg p-6 text-center border-dashed border-2">
-                      <ShieldAlert className="h-8 w-8 mx-auto mb-2 text-zinc-400" />
-                      <p className="text-zinc-500 text-sm">No tracking events were intercepted during the simulated visit.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {simulateMutation.data.events.map((event: any, i: number) => (
-                        <div key={i} className="flex gap-4 p-4 border rounded-lg bg-card shadow-sm items-start">
-                          {event.type === 'Facebook Pixel' ? (
-                            <div className="bg-blue-500/10 p-2 rounded-md shrink-0">
-                              <Activity className="h-6 w-6 text-blue-500" />
-                            </div>
-                          ) : (
-                            <div className="bg-orange-500/10 p-2 rounded-md shrink-0">
-                              <Activity className="h-6 w-6 text-orange-500" />
-                            </div>
-                          )}
-                          <div className="space-y-1 w-full overflow-hidden">
-                            <div className="flex justify-between items-center">
-                              <h4 className="font-semibold text-sm">{event.type}</h4>
-                              <span className="text-xs text-zinc-500">{new Date(event.timestamp).toLocaleTimeString()}</span>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                              <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-300 text-xs px-2 py-0.5 rounded-full font-medium">
-                                Event: {event.eventName}
-                              </span>
-                              <span className="text-xs text-zinc-500 font-mono truncate">
-                                ID: {event.pixelId || event.measurementId}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-zinc-400 font-mono truncate mt-2">{event.url}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {simulateMutation.data && !simulateMutation.data.success && (
-                 <Alert variant="destructive">
-                   <AlertTriangle className="h-4 w-4" />
-                   <AlertTitle>Simulation Failed</AlertTitle>
-                   <AlertDescription>{simulateMutation.data.message}</AlertDescription>
-                 </Alert>
-              )}
-            </CardContent>
-            <CardFooter className="flex gap-2">
-              <Button 
-                onClick={() => scanMutation.mutate()} 
-                disabled={scanMutation.isPending || simulateMutation.isPending || !scanUrl}
-                className="flex-1"
-                variant="outline"
-              >
-                {scanMutation.isPending ? "Scanning files..." : "Scan URL for Code"}
-              </Button>
-              <Button 
-                onClick={() => simulateMutation.mutate()} 
-                disabled={scanMutation.isPending || simulateMutation.isPending || !scanUrl}
-                className="flex-1"
-              >
-                {simulateMutation.isPending ? <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Simulating Visit...</> : "Simulate Visit & Intercept Events"}
-              </Button>
-            </CardFooter>
-          </Card>
+          <ScannerDashboard />
         </TabsContent>
 
         <TabsContent value="catcher" className="space-y-4">

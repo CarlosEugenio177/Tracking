@@ -186,7 +186,7 @@ router.post("/scan-url", requireAuth(), async (req: Request, res: Response) => {
   }
 });
 
-// --- HEADLESS BROWSER EVENT INTERCEPTOR ---
+// --- HEADLESS BROWSER EVENT INTERCEPTOR V2 ---
 router.post("/simulate-visit", requireAuth(), async (req: Request, res: Response) => {
   try {
     let { url } = req.body;
@@ -199,22 +199,36 @@ router.post("/simulate-visit", requireAuth(), async (req: Request, res: Response
     });
 
     const page = await browser.newPage();
-    
-    // Mask as a real browser, otherwise Facebook blocks tracking scripts from firing
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36');
     
+    const startTime = performance.now();
+    const timeline: any[] = [];
     const interceptedEvents: any[] = [];
+    const issues: string[] = [];
+    const suggestions: string[] = [];
+    const pixels = { facebook: [] as string[], gtm: false, googleAnalytics: false, tiktok: false };
+    
     let isPageLoaded = false;
 
-    // Intercept network requests
+    // We will track HTML and CSS loading
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       const reqUrl = request.url();
+      const resourceType = request.resourceType();
+      const elapsed = Math.round(performance.now() - startTime);
       
       // Block navigation after initial load to prevent losing the page during clicks
       if (isPageLoaded && request.isNavigationRequest() && request.frame() === page.mainFrame()) {
          request.abort();
          return;
+      }
+      
+      if (resourceType === 'document' && reqUrl === url) {
+        timeline.push({ timeMs: elapsed, type: 'Document', name: 'HTML Document' });
+      } else if (resourceType === 'stylesheet') {
+        if (!timeline.find(t => t.type === 'CSS')) {
+          timeline.push({ timeMs: elapsed, type: 'CSS', name: 'First Stylesheet' });
+        }
       }
       
       // Check for Facebook Pixel requests
@@ -235,23 +249,37 @@ router.post("/simulate-visit", requireAuth(), async (req: Request, res: Response
             } catch(e) {}
           }
 
-          // Filter out redundant automatic events
-          if (eventName === 'SubscribedButtonClick') {
-            return;
+          if (pixelId && !pixels.facebook.includes(pixelId)) {
+            pixels.facebook.push(pixelId);
+            timeline.push({ timeMs: elapsed, type: 'Pixel', name: `Meta Pixel (${pixelId})` });
           }
 
-          interceptedEvents.push({
-            type: 'Facebook Pixel',
-            eventName: eventName || 'Unknown',
-            pixelId: pixelId || 'Unknown',
-            url: reqUrl,
-            timestamp: new Date().toISOString()
-          });
+          // Filter out redundant automatic events
+          if (eventName !== 'SubscribedButtonClick') {
+            interceptedEvents.push({
+              type: 'Facebook Pixel',
+              eventName: eventName || 'Unknown',
+              pixelId: pixelId || 'Unknown',
+              url: reqUrl,
+              timestamp: new Date().toISOString()
+            });
+            timeline.push({ timeMs: elapsed, type: 'Event', name: eventName || 'Unknown' });
+          }
         } catch (e) {}
       }
       
       // Check for Google Analytics/GTM requests
+      if (reqUrl.includes('googletagmanager.com/gtm.js')) {
+         if (!pixels.gtm) {
+           pixels.gtm = true;
+           timeline.push({ timeMs: elapsed, type: 'TagManager', name: 'Google Tag Manager' });
+         }
+      }
       if (reqUrl.includes('google-analytics.com/g/collect')) {
+        if (!pixels.googleAnalytics) {
+          pixels.googleAnalytics = true;
+          timeline.push({ timeMs: elapsed, type: 'Analytics', name: 'Google Analytics' });
+        }
         try {
           const urlObj = new URL(reqUrl);
           const eventName = urlObj.searchParams.get('en') || 'Unknown';
@@ -263,6 +291,7 @@ router.post("/simulate-visit", requireAuth(), async (req: Request, res: Response
             url: reqUrl,
             timestamp: new Date().toISOString()
           });
+          timeline.push({ timeMs: elapsed, type: 'Event', name: eventName || 'Unknown' });
         } catch (e) {}
       }
       
@@ -287,16 +316,98 @@ router.post("/simulate-visit", requireAuth(), async (req: Request, res: Response
              } catch(e) {}
          }).catch(() => {});
       }
-    } catch (e) {
-      // Ignore errors if page structure breaks during aggressive clicks
-    }
+    } catch (e) {}
     
-    // Wait for the click-triggered events to fire
     await new Promise(r => setTimeout(r, 3000));
     
+    // Extract Cookies
+    const browserCookies = await page.cookies();
+    const cookies = browserCookies.map(c => ({
+      name: c.name,
+      value: c.value.length > 20 ? c.value.substring(0, 20) + '***' : c.value,
+      domain: c.domain,
+      expires: c.expires
+    })).filter(c => ['_fbp', '_fbc', '_ga', '_gid'].includes(c.name));
+
+    // Extract Consent
+    const consentMode = await page.evaluate(() => {
+      // Very basic heuristic for consent
+      if (typeof (window as any).google_tag_data !== 'undefined') return "Detected";
+      if (document.cookie.includes('consent')) return "Cookie Found";
+      return "Not Detected";
+    });
+
     await browser.close();
 
-    res.json({ success: true, events: interceptedEvents });
+    // -----------------------------------------
+    // INTELLIGENT DIAGNOSTICS & HEURISTICS
+    // -----------------------------------------
+    let score = 100;
+    
+    const hasFB = pixels.facebook.length > 0;
+    const fbEvents = interceptedEvents.filter(e => e.type === 'Facebook Pixel').map(e => e.eventName);
+    
+    if (pixels.facebook.length > 1) {
+       issues.push("Pixel da Meta duplicado.");
+       suggestions.push("Remova a instalação redundante do Pixel para evitar eventos duplicados e ROAS inflado.");
+       score -= 15;
+    }
+    
+    if (hasFB) {
+      if (!fbEvents.includes('PageView')) {
+        issues.push("O evento PageView não foi disparado.");
+        suggestions.push("Verifique se o código base do Pixel da Meta está instalado corretamente no <head>.");
+        score -= 20;
+      }
+      
+      const conversionEvents = ['Lead', 'Purchase', 'AddToCart', 'InitiateCheckout', 'CompleteRegistration'];
+      const hasConversion = fbEvents.some(e => conversionEvents.includes(e));
+      
+      if (!hasConversion) {
+        issues.push("Nenhum evento de conversão detectado (ex: Lead, Purchase).");
+        suggestions.push("O Pixel está instalado, mas as ações de valor não estão sendo rastreadas. Configure os eventos de conversão nos botões ou formulários.");
+        score -= 20;
+      }
+      
+      if (!cookies.find(c => c.name === '_fbp')) {
+        issues.push("Cookie _fbp não encontrado.");
+        suggestions.push("O cookie _fbp é essencial para Advanced Matching. Verifique se o First-Party Cookies está habilitado na configuração do Pixel.");
+        score -= 10;
+      }
+    } else {
+      issues.push("Pixel da Meta não encontrado.");
+      suggestions.push("Instale o Meta Pixel caso você faça anúncios no Facebook/Instagram.");
+      score -= 30;
+    }
+    
+    if (pixels.gtm && !hasFB && !pixels.googleAnalytics) {
+       issues.push("GTM encontrado, mas nenhuma tag de conversão disparou.");
+       suggestions.push("O GTM está instalado, mas parece vazio. Configure as tags (Pixel/GA4) e ative os Acionadores (Triggers).");
+       score -= 15;
+    }
+
+    // AI Insight generation
+    let ai_insight = `Seu tracking está ${Math.max(0, score)}% saudável. `;
+    if (score === 100) {
+      ai_insight += "Excelente! Todos os sinais vitais estão funcionando perfeitamente. O seu funil está totalmente rastreado e pronto para escalar.";
+    } else if (score >= 80) {
+      ai_insight += `Existem ${issues.length} pequenos problemas. A fundação está boa, mas alguns ajustes finos podem melhorar a atribuição e reduzir a perda de dados.`;
+    } else {
+      ai_insight += `Existem ${issues.length} problemas críticos. ${issues[0]} Isso impede as plataformas de anúncios de otimizar campanhas adequadamente, o que está custando dinheiro.`;
+    }
+
+    res.json({ 
+      success: true, 
+      score: Math.max(0, score),
+      pixels,
+      events: interceptedEvents,
+      cookies,
+      consent: consentMode,
+      timeline,
+      issues,
+      suggestions,
+      ai_insight
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || "Failed to simulate visit" });
   }
