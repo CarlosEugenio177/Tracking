@@ -10,7 +10,8 @@ import {
   DollarSign, 
   Settings,
   LogOut,
-  Target
+  Target,
+  Stethoscope
 } from "lucide-react";
 import { useListWorkspaces } from "@workspace/api-client-react";
 
@@ -29,6 +30,7 @@ export function Sidebar() {
     { name: "Webhooks", href: "/webhooks", icon: Webhook },
     { name: "Eventos", href: "/events", icon: Activity },
     { name: "Conversões", href: "/conversions", icon: DollarSign },
+    { name: "Tracking Doctor", href: "/doctor", icon: Stethoscope },
   ];
 
   return (

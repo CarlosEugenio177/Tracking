@@ -1,4 +1,6 @@
 import express, { type Express } from "express";
+import path from "path";
+import fs from "fs";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
@@ -50,5 +52,20 @@ app.use(
 );
 
 app.use("/api", router);
+
+// Serve static frontend files in production
+const frontendDistPath = path.resolve(process.cwd(), "artifacts/trackflow/dist/public");
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  
+  // Catch-all route to serve index.html for SPA routing (Wouter/React Router)
+  app.use((req, res, next) => {
+    if (req.method === "GET" && !req.path.startsWith("/api")) {
+      res.sendFile(path.join(frontendDistPath, "index.html"));
+    } else {
+      next();
+    }
+  });
+}
 
 export default app;

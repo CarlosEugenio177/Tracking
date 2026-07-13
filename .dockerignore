@@ -1,0 +1,16 @@
+node_modules
+.git
+.env
+dist
+build
+.next
+.vscode
+artifacts/*/node_modules
+artifacts/*/dist
+lib/*/node_modules
+lib/*/dist
+logs
+*.log
+.dockerignore
+Dockerfile
+docker-compose.yml

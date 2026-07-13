@@ -7,6 +7,7 @@ import linksRouter from "./links";
 import webhooksRouter from "./webhooks";
 import eventsRouter from "./events";
 import conversionsRouter from "./conversions";
+import doctorRouter from "./doctor";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(linksRouter);
 router.use(webhooksRouter);
 router.use(eventsRouter);
 router.use(conversionsRouter);
+router.use("/doctor", doctorRouter);
 
 export default router;

@@ -36,6 +36,29 @@ router.get("/workspaces", requireAuth, async (req, res) => {
         : [];
 
     const all = [...owned, ...memberWorkspaces];
+
+    // Auto-onboarding: Create a default workspace if the user has none
+    if (all.length === 0) {
+      try {
+        const [workspace] = await db
+          .insert(workspacesTable)
+          .values({
+            name: "Meu Workspace",
+            slug: `workspace-${userId.substring(userId.length - 6).toLowerCase()}`,
+            ownerClerkId: userId,
+          })
+          .returning();
+          
+        await db
+          .insert(workspaceMembersTable)
+          .values({ workspaceId: workspace.id, clerkUserId: userId, role: "owner" });
+          
+        all.push(workspace);
+      } catch (insertErr) {
+        req.log.error(insertErr, "Failed to auto-create default workspace");
+      }
+    }
+
     res.json(
       all.map((w) => ({
         ...w,

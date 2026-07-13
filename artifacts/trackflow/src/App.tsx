@@ -20,6 +20,7 @@ import WebhookDetail from './pages/WebhookDetail';
 import Events from './pages/Events';
 import Conversions from './pages/Conversions';
 import Settings from './pages/Settings';
+import Doctor from './pages/Doctor';
 import NotFound from './pages/not-found';
 
 const clerkPubKey = publishableKeyFromHost(
@@ -185,6 +186,7 @@ function ClerkProviderWithRoutes() {
               <Route path="/events" component={() => <ProtectedRoute component={Events} />} />
               <Route path="/conversions" component={() => <ProtectedRoute component={Conversions} />} />
               <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
+              <Route path="/doctor" component={() => <ProtectedRoute component={Doctor} />} />
 
               <Route component={NotFound} />
             </Switch>

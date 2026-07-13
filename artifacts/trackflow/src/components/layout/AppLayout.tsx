@@ -10,6 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   events: "Eventos",
   conversions: "Conversões",
   settings: "Configurações",
+  doctor: "Tracking Doctor",
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

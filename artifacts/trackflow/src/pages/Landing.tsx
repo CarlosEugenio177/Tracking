@@ -21,7 +21,7 @@ export default function Landing() {
       <main>
         <section className="py-24 px-8 max-w-7xl mx-auto text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            <Zap size={14} /> O GitHub do Rastreamento Digital
+            <Zap size={14} /> O Sistema Operacional do Tracking
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-balance max-w-4xl mx-auto leading-tight">
             Pare de perder dados.<br />Comece a governá-los.
